@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../entities/DocumentEntity.dart';
@@ -8,7 +7,7 @@ import 'HashServise.dart';
 class ApiServices{
   static const String _baseUrl = "http://localhost:8080";
 
-  static Future<int> login(String number) async {
+  static Future<int> login(String number, String? password) async {
     Uri requestUrl = Uri.parse("$_baseUrl/login");
 
     Map<String, String> headers = {
@@ -18,6 +17,10 @@ class ApiServices{
     Map<String, String> body = {
       "phoneNumber": HashService.getHash(number).toString()
     };
+
+    if(password != null){
+      body.addAll({"password": HashService.getHash(password).toString()});
+    }
 
     final http.Response response = await http.post(
         requestUrl,
@@ -31,7 +34,6 @@ class ApiServices{
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString("token", "Bearer $token");
-      return response.statusCode;
     }
 
     return response.statusCode;

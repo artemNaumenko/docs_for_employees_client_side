@@ -9,6 +9,8 @@ class LoginPage extends StatefulWidget{
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _controller = TextEditingController();
+  final TextEditingController _controller2 = TextEditingController();
+  bool _isAdmin = false;
 
   void _showAlert(BuildContext context, String msg){
     showDialog(
@@ -20,11 +22,38 @@ class _LoginPageState extends State<LoginPage> {
             actions: [
               ElevatedButton(
                 onPressed: () => {Navigator.of(context).pop()},
-                child: Text("Close"),
+                child: const Text("Close"),
               )
             ],
           );
         });
+  }
+
+  void _login(){
+    String? password;
+    if(_controller2.text.isEmpty){
+      password = null;
+    } else {
+      password = _controller2.text;
+    }
+
+    ApiServices.login(_controller.text, password).then((resStatusCode){
+      if(resStatusCode == 201){
+        if(password == null) {
+          Navigator.pushReplacementNamed(context, '/home');
+        } else {
+          Navigator.pushReplacementNamed(context, '/admin/home');
+        }
+      } else if(resStatusCode == 301){//ADMIN
+        setState((){
+          _isAdmin = true;
+        });
+      } else if(resStatusCode == 500){
+        _showAlert(context, "Access denied.");
+      } else {
+        _showAlert(context, "Try soon.");
+      }
+    });
   }
 
 
@@ -59,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
                 Row(
                   children: [
                     Expanded(
-                      child: TextFormField(
+                      child: TextFormField( // phone
                         controller: _controller,
                         keyboardType: TextInputType.number,
                         decoration: const InputDecoration(
@@ -67,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\+\d+'))],
                         style: Theme.of(context).textTheme.titleLarge,
-                        readOnly: false,
+                        readOnly: (_isAdmin) ? true : false,
                         maxLength: 13,
                         onChanged: (str){
                           if(str.length < 4){
@@ -77,9 +106,13 @@ class _LoginPageState extends State<LoginPage> {
                           }
                         },
                         onFieldSubmitted: (number) {
-                          ApiServices.login(number).then((resStatusCode){
-                            if(resStatusCode == 201){
+                          ApiServices.login(number, null).then((resStatusCode){
+                            if(resStatusCode == 201){ //USER
                               Navigator.pushReplacementNamed(context, '/home');
+                            } else if(resStatusCode == 301){//ADMIN
+                              setState((){
+                                _isAdmin = true;
+                              });
                             } else if(resStatusCode == 500){
                               _showAlert(context, "Access denied.");
                             } else {
@@ -95,21 +128,51 @@ class _LoginPageState extends State<LoginPage> {
                 const Divider(
                   color: Color.fromRGBO(0, 0, 0, 0),
                 ),
+                (!_isAdmin) ? Container() :
+                    Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField( // password
+                                controller: _controller2,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: "Enter your password",
+                                ),
+                                style: Theme.of(context).textTheme.titleLarge,
+                                readOnly: false,
+                                maxLength: 16,
+                                onFieldSubmitted: (password) {
+                                  ApiServices.login(_controller.text, password).then((resStatusCode){
+                                    if(resStatusCode == 201){ //USER
+                                      Navigator.pushReplacementNamed(context, '/admin/home');
+                                    } else if(resStatusCode == 301){//need password
+                                      setState((){
+                                        _isAdmin = true;
+                                      });
+                                    } else if(resStatusCode == 500){
+                                      _showAlert(context, "Access denied.");
+                                    } else {
+                                      _showAlert(context, "Try soon.");
+                                    }
+                                  });
+                                },
+                              ),
+                            ),
+
+                          ],
+                        ),
+                        const Divider(
+                          color: Color.fromRGBO(0, 0, 0, 0),
+                        ),
+                      ],
+                    ),
                 Row(
                   children: [
                     Expanded(
                         child: ElevatedButton(
-                          onPressed: () {
-                            ApiServices.login(_controller.text).then((resStatusCode){
-                              if(resStatusCode == 201){
-                                Navigator.pushReplacementNamed(context, '/home');
-                              } else if(resStatusCode == 500){
-                                _showAlert(context, "Access denied.");
-                              } else {
-                                _showAlert(context, "Try soon.");
-                              }
-                            });
-                          },
+                          onPressed: _login,
                           style: ButtonStyle(
                             shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                               const RoundedRectangleBorder(
