@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:docs_for_employees/core/entities/UserEntity.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../entities/DocumentEntity.dart';
@@ -33,15 +34,169 @@ class ApiServices{
       String token = jsonResponse['token'];
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString("token", "Bearer $token");
+      await prefs.setString("authorization", "Bearer $token");
     }
 
     return response.statusCode;
   }
 
+  static Future<int?> addUserToSystem(String name, String phoneNumber) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token  = prefs.getString("authorization");
+    if(token == null){
+      return null;
+    }
+
+    Uri requestUrl = Uri.parse("$_baseUrl/addNewUser");
+
+    Map<String, String> headers = {
+      "Content-Type":"application/json",
+      "authorization": token
+    };
+
+    Map<String, String> body = {
+      "name": name,
+      "phoneNumber": HashService.getHash(phoneNumber).toString(),
+      "role": "USER",
+    };
+
+    final http.Response response = await http.post(
+        requestUrl,
+        headers: headers,
+        body: jsonEncode(body)
+    );
+
+    return response.statusCode;
+  }
+
+  static Future<bool?> checkIfUserExist(String phoneNumber) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token  = prefs.getString("authorization");
+    if(token == null){
+      return null;
+    }
+
+    Uri requestUrl = Uri.parse("$_baseUrl/checkIfUserExists");
+
+    Map<String, String> headers = {
+      "Content-Type":"application/json",
+      "phone_number": HashService.getHash(phoneNumber).toString(),
+      "authorization": token,
+    };
+
+    final http.Response response = await http.post(
+        requestUrl,
+        headers: headers,
+    );
+
+    if(response.statusCode == 200){
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  static Future<List<UserEntity>?> getAllUsersExceptMe() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token  = prefs.getString("authorization");
+    if(token == null){
+      return null;
+    }
+
+    Uri requestUrl = Uri.parse("$_baseUrl/getAllUsersExceptMe");
+    Map<String, String> headers = {
+      "Content-Type":"application/json",
+      "Authorization": token,
+    };
+
+    final http.Response response = await http.get(
+        requestUrl,
+        headers: headers
+    );
+
+    if(response.statusCode == 201){
+      List<UserEntity> users = List.empty(growable: true);
+      List decodedResponse = json.decode(response.body);
+
+      for (var element in decodedResponse) {
+        users.add(UserEntity.fromJson(element));
+      }
+
+      return users;
+    } else{
+      return null;
+    }
+  }
+
+  static Future<List<UserEntity>?> getUsersHaveAccessToFile(String fileId) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token  = prefs.getString("authorization");
+    if(token == null){
+      return null;
+    }
+
+    Uri requestUrl = Uri.parse("$_baseUrl/getUsersHaveAccessToFile");
+    Map<String, String> headers = {
+      "Content-Type":"application/json",
+      "Authorization": token,
+      "file_id": fileId
+    };
+
+    final http.Response response = await http.get(
+        requestUrl,
+        headers: headers
+    );
+
+    if(response.statusCode == 201){
+      List<UserEntity> users = List.empty(growable: true);
+      List decodedResponse = json.decode(response.body);
+
+      for (var element in decodedResponse) {
+        users.add(UserEntity.fromJson(element));
+      }
+
+      return users;
+    } else{
+      return null;
+    }
+  }
+
+  static Future<List<UserEntity>?> getUsersDoNotHaveAccessToFile(String fileId) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token  = prefs.getString("authorization");
+    if(token == null){
+      return null;
+    }
+
+    Uri requestUrl = Uri.parse("$_baseUrl/getUsersDoNotHaveAccessToFile");
+    Map<String, String> headers = {
+      "Content-Type":"application/json",
+      "Authorization": token,
+      "file_id": fileId
+    };
+
+    final http.Response response = await http.get(
+        requestUrl,
+        headers: headers
+    );
+
+    if(response.statusCode == 201){
+      List<UserEntity> users = List.empty(growable: true);
+      List decodedResponse = json.decode(response.body);
+
+      for (var element in decodedResponse) {
+        users.add(UserEntity.fromJson(element));
+      }
+
+      return users;
+    } else{
+      return null;
+    }
+  }
+
   static Future<List<DocumentEntity>?> getAllAvailableFiles(bool read) async {
     final prefs = await SharedPreferences.getInstance();
-    String? token  = prefs.getString("token");
+    String? token  = prefs.getString("authorization");
     if(token == null){
       return null;
     }
@@ -72,9 +227,41 @@ class ApiServices{
     }
   }
 
+  static Future<List<DocumentEntity>?> getAllFiles() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token  = prefs.getString("authorization");
+    if(token == null){
+      return null;
+    }
+
+    Uri requestUrl = Uri.parse("$_baseUrl/getAllFiles");
+    Map<String, String> headers = {
+      "Content-Type":"application/json",
+      "Authorization": token,
+    };
+
+    final http.Response response = await http.get(
+        requestUrl,
+        headers: headers
+    );
+
+    if(response.statusCode == 200){
+      List<DocumentEntity> documents = List.empty(growable: true);
+      List decodedResponse = json.decode(response.body);
+
+      for (var element in decodedResponse) {
+        documents.add(DocumentEntity.fromJson(element));
+      }
+
+      return documents;
+    } else{
+      return null;
+    }
+  }
+
   static Future<String?> getLinkOfFile(String fileName) async {
     final prefs = await SharedPreferences.getInstance();
-    String? token  = prefs.getString("token");
+    String? token  = prefs.getString("authorization");
     if(token == null){
       return null;
     }
@@ -103,7 +290,7 @@ class ApiServices{
 
   static Future<bool?> markFileAsRead(String fileName) async {
     final prefs = await SharedPreferences.getInstance();
-    String? token  = prefs.getString("token");
+    String? token  = prefs.getString("authorization");
     if(token == null){
       return null;
     }
@@ -121,6 +308,37 @@ class ApiServices{
     );
 
     if(response.statusCode == 202){
+      return true;
+    }
+
+    return false;
+  }
+
+  static Future<bool?> addAccessToFile(UserEntity user, DocumentEntity document) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token  = prefs.getString("authorization");
+    if(token == null){
+      return null;
+    }
+
+    Uri requestUrl = Uri.parse("$_baseUrl/addAccess");
+    Map<String, String> headers = {
+      "Content-Type":"application/json",
+      "Authorization": token,
+    };
+
+    Map<String, dynamic> body = {
+      "userPhoneNumbers": [user.phoneNumber],
+      "fileName": document.fileName
+    };
+
+    final http.Response response = await http.post(
+        requestUrl,
+        headers: headers,
+        body: jsonEncode(body),
+    );
+
+    if(response.statusCode == 201){
       return true;
     }
 

@@ -1,8 +1,6 @@
-import 'dart:io';
-
 import 'package:docs_for_employees/core/entities/DocumentEntity.dart';
 import 'package:docs_for_employees/core/services/ApiServices.dart';
-import 'package:docs_for_employees/ui/widget/Link.dart';
+import 'package:docs_for_employees/ui/widgets/Link.dart';
 import 'package:flutter/material.dart';
 
 class DocumentPage extends StatefulWidget {

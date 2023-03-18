@@ -1,4 +1,4 @@
-import 'package:docs_for_employees/ui/AdminHome.dart';
+import 'package:docs_for_employees/ui/admin/AdminHome.dart';
 import 'package:docs_for_employees/ui/DocumentPage.dart';
 import 'package:docs_for_employees/ui/HomePage.dart';
 import 'package:docs_for_employees/ui/LoginPage.dart';
