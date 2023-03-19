@@ -1,26 +1,27 @@
 import 'package:docs_for_employees/core/entities/DocumentEntity.dart';
 import 'package:docs_for_employees/core/entities/UserEntity.dart';
+import 'package:docs_for_employees/ui/widgets/AddFileToUserDialog.dart';
 import 'package:docs_for_employees/ui/widgets/Link.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/services/ApiServices.dart';
 
 class OneUserManagementPage extends StatefulWidget {
   UserEntity _user;
-  OneUserManagementPage(this._user, {Key? key}) : super(key: key);
+  OneUserManagementPage(this._user, {Key? key}) : super(key: key){
+    print("OneUserManagementPage");
+  }
 
   @override
-  State<OneUserManagementPage> createState() => _OneDocumentManagementPageState();
+  State<OneUserManagementPage> createState() => _OneUserManagementPageState();
 }
 
-class _OneDocumentManagementPageState extends State<OneUserManagementPage> {
+class _OneUserManagementPageState extends State<OneUserManagementPage> {
   List<DocumentEntity>? _documents;
   bool _needRelogin = false;
-  final DateFormat _formatter = DateFormat('yyyy-MM-dd');
 
   void _updateDocuments(){
-    ApiServices.getFilesUserHaveAccess(widget._user.id.toString()).then((list){
+    ApiServices.getFilesUserHasAccess(widget._user.id.toString()).then((list){
       setState(() {
         _documents = list;
       });
@@ -29,6 +30,7 @@ class _OneDocumentManagementPageState extends State<OneUserManagementPage> {
 
   @override
   void initState() {
+    print("OneUserManagementPage --- initState");
     super.initState();
     _updateDocuments();
   }
@@ -48,12 +50,12 @@ class _OneDocumentManagementPageState extends State<OneUserManagementPage> {
               padding: const EdgeInsets.only(
                   bottom: 8
               ),
-              child: Text(widget._user.name)
+              child: Text(widget._user.name, style: Theme.of(context).textTheme.titleLarge,)
             ),
             (_documents == null || _documents!.isEmpty) ? Expanded(
               child: Center(
                 child: Text(
-                  "qwe",
+                  "${widget._user.name} does not have access to any file.",
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
@@ -67,12 +69,11 @@ class _OneDocumentManagementPageState extends State<OneUserManagementPage> {
                     return Card(
                       child: ListTile(
                         title: Link(text: document.fileName, url: Uri.parse(document.link!),),
-                        // subtitle: (user.hasAlreadyBeenRead!)
-                        //     ? const Text("has already read.")
-                        //     : Text("has not read yet."),
+                        subtitle: (document.wasRead!)
+                            ? const Text("has already been read.")
+                            : const Text("has not yet been read."),
                         trailing: IconButton(
-                            onPressed: () => null,
-                          // onPressed: () => _confirmAccessRevokeDialog(context, widget._document, user),
+                          onPressed: () => _confirmAccessRevokeDialog(context, document, widget._user),
                           icon: const Icon(Icons.person_remove),
                         ),
                       ),
@@ -82,18 +83,18 @@ class _OneDocumentManagementPageState extends State<OneUserManagementPage> {
           ],
         ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     showDialog(
-      //         context: context,
-      //         builder: (context) => AddUserToFileDialog(
-      //           widget._document,
-      //           reloadParent: () => _updateDocuments(),
-      //         )
-      //     );
-      //   },
-      //   child: const Icon(Icons.add),
-      // ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showDialog(
+              context: context,
+              builder: (context) => AddFileToUserDialog(
+                widget._user,
+                reloadParent: () => _updateDocuments(),
+              )
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
@@ -102,7 +103,7 @@ class _OneDocumentManagementPageState extends State<OneUserManagementPage> {
         context: context,
         builder: (context){
           return AlertDialog(
-            title: Text("Revoke ${user.name} access"),
+            title: Text("Revoke ${user.name}'s access to ${document.fileName}"),
             actions: [
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(),

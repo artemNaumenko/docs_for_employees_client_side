@@ -90,14 +90,13 @@ class _LoginPageState extends State<LoginPage> {
                     Expanded(
                       child: TextFormField( // phone
                         controller: _controller,
-                        keyboardType: TextInputType.number,
+                        maxLength: 13,
+                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\+\d+'))],
                         decoration: const InputDecoration(
                           labelText: "Enter your phone number",
                         ),
-                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\+\d+'))],
                         style: Theme.of(context).textTheme.titleLarge,
                         readOnly: (_isAdmin) ? true : false,
-                        maxLength: 13,
                         onChanged: (str){
                           if(str.length < 4){
                             _controller.value = const TextEditingValue(text: "+380");

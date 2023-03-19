@@ -49,7 +49,7 @@ class _UsersManagementPageState extends State<UsersManagementPage> {
                     return GestureDetector(
                       onTap: (){
                         widget.onVariableChanged(user);
-                        widget.pageController.jumpToPage(4);
+                        widget.pageController.jumpToPage(2);
                       },
                       child: Card(
                         child: ListTile(

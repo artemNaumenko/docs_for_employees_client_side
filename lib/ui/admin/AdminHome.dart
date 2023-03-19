@@ -89,7 +89,7 @@ class _AdminHomeState extends State<AdminHome> {
                       _user = userEntity;
                     });
                   },
-                ),
+                ), //1
                 DocumentsManagementPage(
                   pageController: _pageController,
                   onVariableChanged: (documentEntity){
@@ -97,9 +97,9 @@ class _AdminHomeState extends State<AdminHome> {
                       _document = documentEntity;
                     });
                   },
-                ),
-                (_document == null) ? Container() : OneDocumentManagementPage(_document!),
-                (_user == null) ? Container() : OneUserManagementPage(_user!),
+                ), //2
+                (_user == null) ? Container() : OneUserManagementPage(_user!), //3
+                (_document == null) ? Container() : OneDocumentManagementPage(_document!), //4
               ],
             ),
           ),

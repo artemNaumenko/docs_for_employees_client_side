@@ -12,6 +12,7 @@ DocumentEntity _$DocumentEntityFromJson(Map<String, dynamic> json) =>
       json['file_name'] as String,
       DateTime.parse(json['created_at'] as String),
       json['link'] as String?,
+      json['has_already_read'] as bool?,
     );
 
 Map<String, dynamic> _$DocumentEntityToJson(DocumentEntity instance) =>
@@ -20,4 +21,5 @@ Map<String, dynamic> _$DocumentEntityToJson(DocumentEntity instance) =>
       'file_name': instance.fileName,
       'created_at': instance.createdAt.toIso8601String(),
       'link': instance.link,
+      'has_already_read': instance.wasRead,
     };

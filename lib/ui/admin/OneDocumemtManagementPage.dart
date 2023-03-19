@@ -9,7 +9,9 @@ import '../widgets/AddUserToFileDialog.dart';
 
 class OneDocumentManagementPage extends StatefulWidget {
   DocumentEntity _document;
-  OneDocumentManagementPage(this._document, {Key? key}) : super(key: key);
+  OneDocumentManagementPage(this._document, {Key? key}) : super(key: key){
+    print("OneDocumentManagementPage");
+  }
 
   @override
   State<OneDocumentManagementPage> createState() => _OneDocumentManagementPageState();
