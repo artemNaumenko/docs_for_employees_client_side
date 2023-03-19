@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class AddUserDialog extends StatefulWidget {
-  const AddUserDialog({Key? key}) : super(key: key);
+  final Function() updateParent;
+
+  const AddUserDialog({required this.updateParent, Key? key}) : super(key: key);
 
   @override
   AddUserDialogState createState() => AddUserDialogState();
@@ -29,9 +31,9 @@ class AddUserDialogState extends State<AddUserDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SingleChildScrollView(
       child: AlertDialog(
-        title: Text("Add user:"),
+        title: const Text("Add user:"),
         content: Column(
           children: [
             Form(
@@ -75,6 +77,7 @@ class AddUserDialogState extends State<AddUserDialog> {
                     ApiServices.addUserToSystem(_usernameController.text, _phoneController.text)
                         .then((statusCode) {
                       if (statusCode == 201) {
+                        widget.updateParent();
                         Navigator.of(context).pop();
                       } else if (statusCode == 422) {
                         Navigator.of(context).pop();
@@ -103,6 +106,7 @@ class AddUserDialogState extends State<AddUserDialog> {
                 ApiServices.addUserToSystem(_usernameController.text, _phoneController.text)
                     .then((statusCode) {
                   if (statusCode == 201) {
+                    widget.updateParent();
                     Navigator.of(context).pop();
                   } else if (statusCode == 422) {
                     Navigator.of(context).pop();

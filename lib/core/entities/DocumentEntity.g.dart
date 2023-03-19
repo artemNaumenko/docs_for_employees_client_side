@@ -11,6 +11,7 @@ DocumentEntity _$DocumentEntityFromJson(Map<String, dynamic> json) =>
       json['id'] as int,
       json['file_name'] as String,
       DateTime.parse(json['created_at'] as String),
+      json['link'] as String?,
     );
 
 Map<String, dynamic> _$DocumentEntityToJson(DocumentEntity instance) =>
@@ -18,4 +19,5 @@ Map<String, dynamic> _$DocumentEntityToJson(DocumentEntity instance) =>
       'id': instance.id,
       'file_name': instance.fileName,
       'created_at': instance.createdAt.toIso8601String(),
+      'link': instance.link,
     };

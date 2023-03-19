@@ -1,6 +1,8 @@
 import 'package:docs_for_employees/core/entities/DocumentEntity.dart';
+import 'package:docs_for_employees/core/entities/UserEntity.dart';
 import 'package:docs_for_employees/ui/admin/DocumentsManagementPage.dart';
 import 'package:docs_for_employees/ui/admin/OneDocumemtManagementPage.dart';
+import 'package:docs_for_employees/ui/admin/OneUserManagementPage.dart';
 import 'package:easy_sidemenu/easy_sidemenu.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,6 +21,7 @@ class _AdminHomeState extends State<AdminHome> {
   final PageController _pageController = PageController();
 
   DocumentEntity? _document;
+  UserEntity? _user;
 
   late List<SideMenuItem> items;
   int pageNumber = 0;
@@ -79,7 +82,14 @@ class _AdminHomeState extends State<AdminHome> {
             child: PageView(
               controller: _pageController,
               children: [
-                UsersManagementPage(),
+                UsersManagementPage(
+                  pageController: _pageController,
+                  onVariableChanged: (userEntity){
+                    setState(() {
+                      _user = userEntity;
+                    });
+                  },
+                ),
                 DocumentsManagementPage(
                   pageController: _pageController,
                   onVariableChanged: (documentEntity){
@@ -89,6 +99,7 @@ class _AdminHomeState extends State<AdminHome> {
                   },
                 ),
                 (_document == null) ? Container() : OneDocumentManagementPage(_document!),
+                (_user == null) ? Container() : OneUserManagementPage(_user!),
               ],
             ),
           ),

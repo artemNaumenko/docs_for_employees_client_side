@@ -5,7 +5,11 @@ import 'package:flutter/material.dart';
 import '../../core/entities/UserEntity.dart';
 
 class UsersManagementPage extends StatefulWidget {
-  const UsersManagementPage({Key? key}) : super(key: key);
+  final PageController pageController;
+  final Function(UserEntity) onVariableChanged;
+
+  const UsersManagementPage({Key? key, required this.pageController,
+                              required this.onVariableChanged}) : super(key: key);
 
   @override
   State<UsersManagementPage> createState() => _UsersManagementPageState();
@@ -14,9 +18,7 @@ class UsersManagementPage extends StatefulWidget {
 class _UsersManagementPageState extends State<UsersManagementPage> {
   List<UserEntity>? _users;
 
-  @override
-  void initState() {
-    super.initState();
+  void _updateUsers(){
     ApiServices.getAllUsersExceptMe().then((list) {
       setState(() {
         _users = list;
@@ -25,11 +27,17 @@ class _UsersManagementPageState extends State<UsersManagementPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _updateUsers();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: (_users == null)
-          ? const Center(
-              child: Text("UserManagement"),
+      body: (_users == null || _users!.isEmpty)
+          ? Center(
+              child: Text("No user exists yet.", style: Theme.of(context).textTheme.titleLarge,),
             )
           : Scrollbar(
               child: ListView.builder(
@@ -38,13 +46,19 @@ class _UsersManagementPageState extends State<UsersManagementPage> {
                   shrinkWrap: true,
                   itemBuilder: (context, int index) {
                     UserEntity user = _users![index];
-                    return Card(
-                      child: ListTile(
-                        title: Text(user.name),
-                        subtitle: Text(user.roleName),
-                        trailing: IconButton(
-                          onPressed: null,
-                          icon: Icon(Icons.person_remove),
+                    return GestureDetector(
+                      onTap: (){
+                        widget.onVariableChanged(user);
+                        widget.pageController.jumpToPage(4);
+                      },
+                      child: Card(
+                        child: ListTile(
+                          title: Text(user.name),
+                          subtitle: Text(user.roleName),
+                          trailing: IconButton(
+                            onPressed: () => _confirmDeleteUserDialog(context, user),
+                            icon: const Icon(Icons.person_remove),
+                          ),
                         ),
                       ),
                     );
@@ -62,7 +76,35 @@ class _UsersManagementPageState extends State<UsersManagementPage> {
     return await showDialog(
         context: context,
         builder: (context) {
-          return const AddUserDialog();
+          return AddUserDialog(
+            updateParent: () => _updateUsers(),
+          );
         });
+  }
+
+  void _confirmDeleteUserDialog(BuildContext context, UserEntity user){
+    showDialog(
+        context: context,
+        builder: (context){
+          return AlertDialog(
+            title: Text("Delete ${user.name}"),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("Close"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  ApiServices.deleteUser(user).then((value){
+                    _updateUsers();
+                    Navigator.of(context).pop();
+                  });
+                },
+                child: const Text("Confirm"),
+              )
+            ],
+          );
+        }
+    );
   }
 }

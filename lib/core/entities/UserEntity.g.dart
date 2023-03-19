@@ -11,6 +11,7 @@ UserEntity _$UserEntityFromJson(Map<String, dynamic> json) => UserEntity(
       json['name'] as String,
       json['phone_number'] as String,
       json['role_name'] as String,
+      json['has_already_read'] as bool?,
     );
 
 Map<String, dynamic> _$UserEntityToJson(UserEntity instance) =>
@@ -19,4 +20,5 @@ Map<String, dynamic> _$UserEntityToJson(UserEntity instance) =>
       'name': instance.name,
       'phone_number': instance.phoneNumber,
       'role_name': instance.roleName,
+      'has_already_read': instance.hasAlreadyBeenRead,
     };

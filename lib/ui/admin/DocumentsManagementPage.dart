@@ -1,5 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:docs_for_employees/core/entities/DocumentEntity.dart';
+import 'package:docs_for_employees/core/services/FilePicker.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:tuple/tuple.dart';
 
 import '../../core/services/ApiServices.dart';
 
@@ -16,10 +21,10 @@ class DocumentsManagementPage extends StatefulWidget {
 
 class _DocumentsManagementPageState extends State<DocumentsManagementPage> {
   List<DocumentEntity>? _documents;
+  final DateFormat _formatter = DateFormat('yyyy-MM-dd');
 
-  @override
-  void initState() {
-    super.initState();
+
+  void _updateDocuments(){
     ApiServices.getAllFiles().then((list) {
       setState(() {
         _documents = list;
@@ -28,13 +33,19 @@ class _DocumentsManagementPageState extends State<DocumentsManagementPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _updateDocuments();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return (_documents == null) ?
-            const Center(
-              child: Text("Nothing here"),
-            ) :
-            Container(
-              child: Scrollbar(
+    return Scaffold(
+      body: (_documents == null) ?
+              const Center(
+                child: Text("Nothing here"),
+              ) :
+              Scrollbar(
                   child: ListView.builder(
                       scrollDirection: Axis.vertical,
                       itemCount: _documents!.length,
@@ -49,17 +60,51 @@ class _DocumentsManagementPageState extends State<DocumentsManagementPage> {
                           child: Card(
                             child: ListTile(
                               title: Text(document.fileName),
-                              subtitle: Text(document.createdAt.toString()),
+                              subtitle: Text(_formatter.format(document.createdAt)),
                               trailing: IconButton(
-                                onPressed: (){
-                                  print("remove");
-                                },
+                                onPressed: () => _confirmDeleteFileDialog(context, document),
                                 icon: Icon(Icons.delete),
                               ),
                             ),
                           ),
                         );
                       })),
-            );
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          Tuple2<String, Uint8List>? tuple = await FilePickerServices.pickFile();
+          if(tuple != null){
+            await ApiServices.postFile(tuple.item1, tuple.item2);
+            _updateDocuments();
+          }
+        },
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  void _confirmDeleteFileDialog(BuildContext context, DocumentEntity document){
+    showDialog(
+        context: context,
+        builder: (context){
+          return AlertDialog(
+            title: Text("Delete ${document.fileName}"),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("Close"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  ApiServices.deleteFile(document).then((value){
+                    _updateDocuments();
+                    Navigator.of(context).pop();
+                  });
+                },
+                child: const Text("Confirm"),
+              )
+            ],
+          );
+        }
+    );
   }
 }

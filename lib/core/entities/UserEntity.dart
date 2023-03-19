@@ -9,8 +9,10 @@ class UserEntity{
   String phoneNumber;
   @JsonKey(name: 'role_name')
   String roleName;
+  @JsonKey(name: 'has_already_read')
+  bool? hasAlreadyBeenRead;
 
-  UserEntity(this.id, this.name, this.phoneNumber, this.roleName);
+  UserEntity(this.id, this.name, this.phoneNumber, this.roleName, this.hasAlreadyBeenRead);
 
   factory UserEntity.fromJson(Map<String, dynamic> json) => _$UserEntityFromJson(json);
 

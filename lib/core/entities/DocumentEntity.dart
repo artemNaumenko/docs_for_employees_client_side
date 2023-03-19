@@ -8,8 +8,9 @@ class DocumentEntity{
   final String fileName;
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
+  final String? link;
 
-  DocumentEntity(this.id, this.fileName, this.createdAt);
+  DocumentEntity(this.id, this.fileName, this.createdAt, this.link);
 
   factory DocumentEntity.fromJson(Map<String, dynamic> json) => _$DocumentEntityFromJson(json);
 

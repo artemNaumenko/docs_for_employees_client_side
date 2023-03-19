@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:docs_for_employees/core/entities/UserEntity.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -194,6 +195,41 @@ class ApiServices{
     }
   }
 
+  static Future<List<DocumentEntity>?> getFilesUserHaveAccess(String userId) async {
+    print("================   $userId     =================");
+
+    final prefs = await SharedPreferences.getInstance();
+    String? token  = prefs.getString("authorization");
+    if(token == null){
+      return null;
+    }
+
+    Uri requestUrl = Uri.parse("$_baseUrl/getFilesUserHaveAccess");
+    Map<String, String> headers = {
+      "Content-Type":"application/json",
+      "Authorization": token,
+      "user_id": userId
+    };
+
+    final http.Response response = await http.get(
+        requestUrl,
+        headers: headers
+    );
+
+    if(response.statusCode == 201){
+      List<DocumentEntity> documents = List.empty(growable: true);
+      List decodedResponse = json.decode(response.body);
+
+      for (var element in decodedResponse) {
+        documents.add(DocumentEntity.fromJson(element));
+      }
+
+      return documents;
+    } else{
+      return null;
+    }
+  }
+
   static Future<List<DocumentEntity>?> getAllAvailableFiles(bool read) async {
     final prefs = await SharedPreferences.getInstance();
     String? token  = prefs.getString("authorization");
@@ -345,22 +381,109 @@ class ApiServices{
     return false;
   }
 
-  // static postFile(String name, Uint8List bytes) async {
-  //   Uri requestUrl = Uri.parse("$_baseUrl/postFile");
-  //
-  //   Map<String, String> headers = {
-  //     "Content-Type":"application/octet-stream",
-  //     "file_name": name
-  //   };
-  //
-  //   final http.Response response = await http.post(
-  //       requestUrl,
-  //       headers: headers,
-  //       body: bytes
-  //   );
-  //
-  //   print(response.statusCode);
-  //
-  //   return;
-  // }
+  static Future<bool?> revokeAccessToFile(DocumentEntity document, UserEntity user) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token  = prefs.getString("authorization");
+    if(token == null){
+      return null;
+    }
+
+    Uri requestUrl = Uri.parse("$_baseUrl/revokeAccessToFile");
+    Map<String, String> headers = {
+      "Content-Type":"application/json",
+      "Authorization": token,
+      "file_id": document.id.toString(),
+      "user_id": user.id.toString(),
+    };
+
+    final http.Response response = await http.delete(
+        requestUrl,
+        headers: headers
+    );
+
+    if(response.statusCode == 201){
+      return true;
+    }
+
+    return false;
+  }
+
+  static Future<bool?> postFile(String name, Uint8List bytes) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token  = prefs.getString("authorization");
+    if(token == null){
+      return null;
+    }
+
+    Uri requestUrl = Uri.parse("$_baseUrl/postFile");
+    Map<String, String> headers = {
+      "Content-Type":"application/octet-stream",
+      "Authorization": token,
+      "file_name": name,
+    };
+
+    final http.Response response = await http.post(
+        requestUrl,
+        headers: headers,
+        body: bytes
+    );
+
+    if(response.statusCode == 200){
+      return true;
+    }
+
+    return false;
+  }
+
+  static Future<bool?> deleteFile(DocumentEntity document) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token  = prefs.getString("authorization");
+    if(token == null){
+      return null;
+    }
+
+    Uri requestUrl = Uri.parse("$_baseUrl/deleteFile");
+    Map<String, String> headers = {
+      "Content-Type":"application/octet-stream",
+      "Authorization": token,
+      "file_id": document.id.toString(),
+    };
+
+    final http.Response response = await http.delete(
+        requestUrl,
+        headers: headers,
+    );
+
+    if(response.statusCode == 201){
+      return true;
+    }
+
+    return false;
+  }
+
+  static Future<bool?> deleteUser(UserEntity user) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token  = prefs.getString("authorization");
+    if(token == null){
+      return null;
+    }
+
+    Uri requestUrl = Uri.parse("$_baseUrl/deleteUser");
+    Map<String, String> headers = {
+      "Content-Type":"application/octet-stream",
+      "Authorization": token,
+      "user_id": user.id.toString(),
+    };
+
+    final http.Response response = await http.delete(
+      requestUrl,
+      headers: headers,
+    );
+
+    if(response.statusCode == 201){
+      return true;
+    }
+
+    return false;
+  }
 }
